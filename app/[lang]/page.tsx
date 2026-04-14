@@ -18,7 +18,7 @@ export default function HomePage({
 
   return (
     <div style={styles.container}>
-      <h1>Hello World</h1>
+      <h1>Приветствуем!</h1>
 
       <button
         style={styles.button}
