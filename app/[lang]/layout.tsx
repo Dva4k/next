@@ -1,12 +1,15 @@
-"use client";
-
-import { I18nextProvider } from "react-i18next";
-import i18n from "@/lib/i18nClient";
-
-export default function LangLayout({
+export default async function LangLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }) {
-  return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
+  const { lang } = await params;
+  
+  return (
+    <html lang={lang}>
+      <body>{children}</body>
+    </html>
+  );
 }

@@ -1,41 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+import { useRouter, useParams } from "next/navigation";
+import { useT } from "@/lib/useT";
 
-const schema = yup.object({
-  title: yup.string().required("Заголовок обязателен"),
-  body: yup.string().required("Содержание обязательно"),
-});
+type PostFormData = {
+  title: string;
+  body: string;
+};
 
-type FormData = yup.InferType<typeof schema>;
-
-export default function CreatePostPage({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
+export default function CreatePostPage() {
   const router = useRouter();
-  const { t, i18n } = useTranslation("common");
+  const params = useParams();
+  const { t } = useT("common");
 
-  useEffect(() => {
-    params.then((data) => i18n.changeLanguage(data.lang));
-  }, [params]);
+  const langParam = params?.lang;
+  const lang =
+    typeof langParam === "string"
+      ? langParam
+      : Array.isArray(langParam)
+      ? langParam[0]
+      : "ru";
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: yupResolver(schema),
-  });
+  const { register, handleSubmit } = useForm<PostFormData>();
 
-  const onSubmit = async (data: FormData) => {
-    const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+  const onSubmit = async (data: PostFormData) => {
+    await fetch("https://jsonplaceholder.typicode.com/posts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,80 +33,30 @@ export default function CreatePostPage({
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      alert(t("post_created"));
-      router.push(`/${i18n.language}/posts`);
-    } else {
-      alert("Error");
-    }
+    alert(t("post_created"));
+    router.push(`/${lang}/posts`);
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ maxWidth: 400, margin: "50px auto", padding: 20 }}>
       <h1>{t("create_post")}</h1>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div style={styles.box}>
-          <input
-            {...register("title")}
-            placeholder={t("title")}
-            style={styles.input}
-          />
-          {errors.title && <p style={styles.error}>{errors.title.message}</p>}
-        </div>
+        <input
+          {...register("title")}
+          placeholder={t("title")}
+          style={{ width: "100%", padding: 8, marginBottom: 10 }}
+        />
 
-        <div style={styles.box}>
-          <textarea
-            {...register("body")}
-            placeholder={t("body")}
-            rows={5}
-            style={styles.textarea}
-          />
-          {errors.body && <p style={styles.error}>{errors.body.message}</p>}
-        </div>
+        <textarea
+          {...register("body")}
+          placeholder={t("body")}
+          rows={5}
+          style={{ width: "100%", padding: 8, marginBottom: 10 }}
+        />
 
-        <button type="submit" style={styles.button}>
-          {t("create")}
-        </button>
+        <button type="submit">{t("create")}</button>
       </form>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    maxWidth: "500px",
-    margin: "30px auto",
-    padding: "20px",
-  },
-  box: {
-    marginBottom: "15px",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    boxSizing: "border-box" as const,
-  },
-  textarea: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    boxSizing: "border-box" as const,
-  },
-  button: {
-    padding: "10px 20px",
-    background: "#4f46e5",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    fontSize: "12px",
-    marginTop: "5px",
-  },
-};

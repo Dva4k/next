@@ -1,53 +1,38 @@
-"use client";
+import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { getT } from "@/lib/getT";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
+async function revalidatePostsPage(formData: FormData) {
+  "use server";
+  const lang = formData.get("lang") as string;
 
-export default function PostsPage({
+  revalidatePath(`/${lang}/posts`, "page");
+}
+
+export default async function PostsPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }) {
-  const router = useRouter();
-  const { t, i18n } = useTranslation("common");
-
-  const date = new Date().toLocaleString();
-
-  useEffect(() => {
-    params.then((data) => i18n.changeLanguage(data.lang));
-  }, [params]);
+  const { lang } = await params;
+  const { t } = await getT("common", lang); 
+  const date = new Date().toLocaleString(lang === "ru" ? "ru-RU" : "en-US");
 
   return (
-    <div style={styles.container}>
+    <div style={{ textAlign: "center", marginTop: 50 }}>
       <h1>{t("posts")}</h1>
-
       <p>
         {t("current_date")}: {date}
       </p>
 
-      <button
-        style={styles.button}
-        onClick={() => router.push(`/${i18n.language}/posts/create`)}
-      >
+      <Link href={`/${lang}/posts/create`} style={{ marginRight: 15 }}>
         {t("create_post")}
-      </button>
+      </Link>
+
+     <form action={revalidatePostsPage}>
+  <input type="hidden" name="lang" value={lang} />
+  <button type="submit">{t("refresh")}</button>
+</form>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    textAlign: "center" as const,
-    marginTop: "50px",
-  },
-  button: {
-    marginTop: "15px",
-    padding: "10px 20px",
-    background: "#4f46e5",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-};

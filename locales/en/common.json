@@ -1,0 +1,23 @@
+{
+  "posts": "Posts Page",
+  "current_date": "Current date and time",
+  "create_post": "Create post",
+  "refresh": "Refresh",
+  "create": "Create",
+  "title": "Title",
+  "body": "Content",
+  "post_created": "Post created!",
+  "register": "Register",
+  "register_button": "Register",
+  "registration_success": "Registration successful!",
+  "name": "Name",
+  "email": "Email",
+  "age": "Age",
+  "password": "Password",
+  "confirm_password": "Confirm password",
+  "greeting": "Hello, {{name}}!",
+  "click_here": "Click <1>here</1> to continue register home",
+  "pluralization_demo": "Pluralization",
+  "items_one": "{{count}} post",
+  "items_other": "{{count}} posts"
+}

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useRouter, useParams } from "next/navigation";
+import { useT } from "@/lib/useT";
 
 const schema = yup.object({
   user_name: yup.string().required("Имя обязательно"),
@@ -13,185 +12,179 @@ const schema = yup.object({
   age: yup
     .number()
     .typeError("Возраст должен быть числом")
-    .positive("Только положительное число")
-    .integer("Только целое число")
-    .required("Возраст обязателен"),
-  password: yup.string().min(6, "Минимум 6 символов").required("Пароль обязателен"),
+    .positive()
+    .integer()
+    .required(),
+  password: yup.string().min(6, "Минимум 6 символов").required(),
   confirm_password: yup
     .string()
     .oneOf([yup.ref("password")], "Пароли не совпадают")
-    .required("Подтвердите пароль"),
+    .required(),
 });
 
 type FormData = yup.InferType<typeof schema>;
 
-export default function RegisterPage({
-  params,
-}: {
-  params: Promise<{ lang: string }>;
-}) {
+export default function RegisterPage() {
   const router = useRouter();
-  const { t, i18n } = useTranslation("common");
+  const params = useParams();
 
-  useEffect(() => {
-    params.then((data) => i18n.changeLanguage(data.lang));
-  }, [params]);
+  const langParam = params?.lang;
+
+  const currentLang =
+    typeof langParam === "string"
+      ? langParam
+      : Array.isArray(langParam)
+      ? langParam[0]
+      : "ru";
+
+  const { t } = useT("common");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
 
+  const watchedName = watch("user_name");
+
   const onSubmit = (data: FormData) => {
     console.log(data);
     alert(t("registration_success"));
-    router.push(`/${i18n.language}/posts`);
+    router.push(`/${currentLang}/posts`);
   };
 
-  const lang = i18n.language;
-
   return (
-    <div style={styles.container}>
-      <div style={styles.langBox}>
+    <div style={{ maxWidth: 400, margin: "40px auto", padding: 20 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          marginBottom: 20,
+          justifyContent: "center",
+        }}
+      >
         <button
-          style={lang === "ru" ? styles.activeBtn : styles.langBtn}
           onClick={() => router.push("/ru/register")}
+          style={{
+            padding: "6px 16px",
+            background: currentLang === "ru" ? "#4f46e5" : "#ddd",
+            color: currentLang === "ru" ? "white" : "black",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
         >
-          RU
+          Русский
         </button>
 
         <button
-          style={lang === "en" ? styles.activeBtn : styles.langBtn}
           onClick={() => router.push("/en/register")}
+          style={{
+            padding: "6px 16px",
+            background: currentLang === "en" ? "#4f46e5" : "#ddd",
+            color: currentLang === "en" ? "white" : "black",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
         >
-          EN
+          English
         </button>
       </div>
 
-      <h1 style={styles.title}>{t("register")}</h1>
+      <h1 style={{ textAlign: "center" }}>{t("register")}</h1>
+
+      {watchedName && (
+        <div
+          style={{
+            padding: 10,
+            background: "#e0f2fe",
+            borderRadius: 8,
+            marginBottom: 20,
+            textAlign: "center",
+          }}
+        >
+          {t("greeting", { name: watchedName })}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Input
-          name="user_name"
-          placeholder={t("name")}
-          register={register}
-          error={errors.user_name?.message}
-        />
+        <div>
+          <input
+            {...register("user_name")}
+            placeholder={t("name")}
+            style={{ width: "100%", padding: 8 }}
+          />
+          <p style={{ color: "red", fontSize: 12 }}>
+            {errors.user_name?.message}
+          </p>
+        </div>
 
-        <Input
-          name="email"
-          placeholder={t("email")}
-          register={register}
-          error={errors.email?.message}
-        />
+        <div>
+          <input
+            {...register("email")}
+            placeholder={t("email")}
+            style={{ width: "100%", padding: 8 }}
+          />
+          <p style={{ color: "red", fontSize: 12 }}>
+            {errors.email?.message}
+          </p>
+        </div>
 
-        <Input
-          name="age"
-          placeholder={t("age")}
-          register={register}
-          error={errors.age?.message}
-        />
+        <div>
+          <input
+            {...register("age")}
+            placeholder={t("age")}
+            style={{ width: "100%", padding: 8 }}
+          />
+          <p style={{ color: "red", fontSize: 12 }}>
+            {errors.age?.message}
+          </p>
+        </div>
 
-        <Input
-          name="password"
-          type="password"
-          placeholder={t("password")}
-          register={register}
-          error={errors.password?.message}
-        />
+        <div>
+          <input
+            type="password"
+            {...register("password")}
+            placeholder={t("password")}
+            style={{ width: "100%", padding: 8 }}
+          />
+          <p style={{ color: "red", fontSize: 12 }}>
+            {errors.password?.message}
+          </p>
+        </div>
 
-        <Input
-          name="confirm_password"
-          type="password"
-          placeholder={t("confirm_password")}
-          register={register}
-          error={errors.confirm_password?.message}
-        />
+        <div>
+          <input
+            type="password"
+            {...register("confirm_password")}
+            placeholder={t("confirm_password")}
+            style={{ width: "100%", padding: 8 }}
+          />
+          <p style={{ color: "red", fontSize: 12 }}>
+            {errors.confirm_password?.message}
+          </p>
+        </div>
 
-        <button type="submit" style={styles.button}>
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            padding: 10,
+            background: "#4f46e5",
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            marginTop: 10,
+          }}
+        >
           {t("register_button")}
         </button>
       </form>
     </div>
   );
 }
-
-function Input({
-  name,
-  placeholder,
-  register,
-  error,
-  type = "text",
-}: any) {
-  return (
-    <div style={{ marginBottom: "15px" }}>
-      <input
-        type={type}
-        {...register(name)}
-        placeholder={placeholder}
-        style={{
-          ...styles.input,
-          border: error ? "1px solid red" : "1px solid #ccc",
-        }}
-      />
-      {error && <p style={styles.error}>{error}</p>}
-    </div>
-  );
-}
-
-const styles = {
-  container: {
-    maxWidth: "400px",
-    margin: "40px auto",
-    padding: "25px",
-    border: "1px solid #ddd",
-    borderRadius: "10px",
-  },
-  title: {
-    textAlign: "center" as const,
-    marginBottom: "20px",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    borderRadius: "6px",
-    boxSizing: "border-box" as const,
-  },
-  button: {
-    width: "100%",
-    padding: "10px",
-    background: "#4f46e5",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    fontSize: "12px",
-    marginTop: "5px",
-  },
-  langBox: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "15px",
-  },
-  langBtn: {
-    flex: 1,
-    padding: "8px",
-    border: "1px solid #ccc",
-    background: "#f5f5f5",
-    cursor: "pointer",
-  },
-  activeBtn: {
-    flex: 1,
-    padding: "8px",
-    border: "1px solid #4f46e5",
-    background: "#4f46e5",
-    color: "white",
-    cursor: "pointer",
-  },
-};
